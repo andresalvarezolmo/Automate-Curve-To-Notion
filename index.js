@@ -2,19 +2,67 @@ require('dotenv').config()
 
 const { Client } = require('@notionhq/client');
 const notion = new Client({ auth: process.env.NOTION_API_KEY });
-(async () => {
-  const databaseId = "84f4ef6fc0fa402baed0a16fd828b8f9";
-  // const response = await notion.databases.retrieve({ database_id: databaseId });
-  const response = await notion.databases.query({
-    database_id: databaseId,
-    filter: {
-      property: 'Expense',
-      title: {
-        equals: "ice cream"
+const databaseId = "84f4ef6fc0fa402baed0a16fd828b8f9";
+
+addEntry =  async (expense, amount, category, date) => {
+  const response = await notion.pages.create({
+    "parent": {
+      "type": "database_id",
+      "database_id": databaseId
+    },
+    "properties": {
+      "Expense": {
+        "title": [
+          {
+            "type": "text",
+            "text": {
+              "content": expense
+            }
+          }
+        ]
+      },
+      "Amount": {
+        "number": amount
+      },
+      "Category": {
+        "multi_select": [
+          {
+            "name": category
+          }
+        ]
+      },
+      "Date": {
+        "date": {
+          "start": date
+        }
       }
     }
-  })
+  });
   console.log(response);
-})();
+}
 
+addEntry("From Method ;)", 1234, "Tech", "2021-05-11T11:00:00.000-04:00")
+
+
+// (async () => {
+//   // const response = await notion.databases.retrieve({ database_id: databaseId });
+//   const response = await notion.databases.query({
+//     database_id: databaseId,
+//     filter: {
+//       property: 'Expense',
+//       title: {
+//         equals: "Experiment from script"
+//       }
+//     }
+//   })
+//   console.log(response);
+// })();
+
+
+// (async () => {
+//   const pageId = '562fb2f1-dc93-4997-9f6d-2fb057fa0436';
+//   const propertyId = "Amount"
+//   const response = await notion.pages.properties.retrieve({ page_id: pageId, property_id: propertyId });
+//   console.log(response);
+// })();
 
