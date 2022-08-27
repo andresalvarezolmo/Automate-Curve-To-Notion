@@ -1,3 +1,6 @@
+# Commma separated files
+*.csv
+
 # Logs
 logs
 *.log

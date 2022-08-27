@@ -1,8 +1,46 @@
 require('dotenv').config()
-
 const { Client } = require('@notionhq/client');
 const notion = new Client({ auth: process.env.NOTION_API_KEY });
 const databaseId = "84f4ef6fc0fa402baed0a16fd828b8f9";
+const csv = require('csv-parser');
+const fs = require('fs');
+const axios = require('axios');
+const dt = require('luxon').DateTime;
+
+const getRates = async () => {
+  let response = await axios.get(`${process.env.CURRENCY_API_URL}${process.env.CURRENCY_API_KEY}${process.env.CURRENCY_API_END}`)
+  return response.data.conversion_rates
+}
+
+readfile = async () => {
+  const rates = await getRates()
+  fs.createReadStream('export.csv')
+  .pipe(csv())
+  .on('data', (row) => {
+    try{  
+      let amount = 0
+      const currency = row['Txn Currency (Funding Card)']
+
+      if(row['Type'] !== "Declined" && row['Type'] !== "REFUNDED" && row['Type'] !== "PENDING"){
+        // console.log(row['Merchant'])
+        const date = dt.fromFormat(row['Date (YYYY-MM-DD as UTC)'], "D").toISODate();
+
+        if (currency == "GBP"){
+          amount = -row['Txn Amount (Funding Card)']
+        } 
+        else {
+          amount = -row['Txn Amount (Funding Card)']/rates[currency]
+        }
+        addEntry(row['Merchant'], amount, row['Category'], date)
+      }
+    }catch(error){
+      console.log(error)
+    }
+  })
+  .on('end', () => {
+    console.log('CSV file successfully processed');
+  });
+}
 
 addEntry =  async (expense, amount, category, date) => {
   const response = await notion.pages.create({
@@ -41,7 +79,9 @@ addEntry =  async (expense, amount, category, date) => {
   console.log(response);
 }
 
-addEntry("From Method ;)", 1234, "Tech", "2021-05-11T11:00:00.000-04:00")
+readfile()
+
+// addEntry("Expense from script", 10, "Food", "2021-05-11T11:00:00.000-04:00")
 
 
 // (async () => {
