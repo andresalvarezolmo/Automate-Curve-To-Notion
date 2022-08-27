@@ -1,7 +1,6 @@
 require('dotenv').config()
 const { Client } = require('@notionhq/client');
 const notion = new Client({ auth: process.env.NOTION_API_KEY });
-const databaseId = "84f4ef6fc0fa402baed0a16fd828b8f9";
 const csv = require('csv-parser');
 const fs = require('fs');
 const axios = require('axios');
@@ -46,7 +45,7 @@ addEntry =  async (expense, amount, category, date) => {
   const response = await notion.pages.create({
     "parent": {
       "type": "database_id",
-      "database_id": databaseId
+      "database_id": process.env.NOTION_DATABASE_ID
     },
     "properties": {
       "Expense": {
